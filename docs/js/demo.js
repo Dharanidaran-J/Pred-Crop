@@ -210,17 +210,24 @@ function setupPredictionForm() {
 }
 
 function displayResults(res) {
-  document.getElementById('resCrop').innerText = res.crop_type;
-  document.getElementById('resLocation').innerText = `${res.district}, ${res.state}`;
-  document.getElementById('resYield').innerText = res.predicted_yield;
-  document.getElementById('resTotal').innerText = res.estimated_total_production;
-  document.getElementById('resArea').innerText = res.land_area;
-  document.getElementById('resNdvi').innerText = res.ndvi;
-  document.getElementById('resBenchmark').innerText = res.benchmark_yield;
+  const setEl = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = val;
+  };
+
+  setEl('resCrop', res.crop_type);
+  setEl('resLocation', `${res.district}, ${res.state}`);
+  setEl('resYield', res.predicted_yield);
+  setEl('resTotal', res.estimated_total_production);
+  setEl('resArea', res.land_area);
+  setEl('resNdvi', res.ndvi);
+  setEl('resBenchmark', res.benchmark_yield);
   
   const deltaEl = document.getElementById('resDelta');
-  deltaEl.innerText = `${res.yield_delta_pct}% vs Regional Benchmark`;
-  deltaEl.style.color = res.yield_delta_pct >= 0 ? '#16a34a' : '#ef4444';
+  if (deltaEl) {
+    deltaEl.innerText = `${res.yield_delta_pct}% vs Regional Benchmark (${res.benchmark_yield} t/ha)`;
+    deltaEl.style.color = res.yield_delta_pct >= 0 ? '#16a34a' : '#ef4444';
+  }
 
   // Render Charts
   renderResultCharts(res);
@@ -334,13 +341,16 @@ function updateDashboardStats() {
 
 function updateWeatherView(cityName) {
   const data = CITY_COORDS[cityName] || CITY_COORDS["Ludhiana"];
-  document.getElementById('weatherCityTitle').innerText = `${cityName}, ${data.state}`;
-  document.getElementById('wTemp').innerText = `${data.temp} °C`;
-  document.getElementById('wRain').innerText = `${Math.round(data.rain / 40)} mm`;
-  document.getElementById('wHum').innerText = `${data.hum} %`;
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+  setEl('weatherCityTitle', `${cityName}, ${data.state}`);
+  setEl('wTemp', `${data.temp} °C`);
+  setEl('wRain', `${Math.round(data.rain / 40)} mm`);
+  setEl('wHum', `${data.hum} %`);
 
+  const chartEl = document.getElementById('weatherForecastChart');
+  if (!chartEl) return;
   if (activeCharts.weather) activeCharts.weather.destroy();
-  const ctx = document.getElementById('weatherForecastChart').getContext('2d');
+  const ctx = chartEl.getContext('2d');
   activeCharts.weather = new Chart(ctx, {
     type: 'line',
     data: {
@@ -363,8 +373,9 @@ function updateWeatherView(cityName) {
 
 function updateSatelliteView(cityName) {
   const data = CITY_COORDS[cityName] || CITY_COORDS["Ludhiana"];
-  document.getElementById('satCityTitle').innerText = `${cityName}, ${data.state}`;
-  document.getElementById('satNdvi').innerText = data.ndvi;
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+  setEl('satCityTitle', `${cityName}, ${data.state}`);
+  setEl('satNdvi', data.ndvi);
 
   // Leaflet map setup
   const mapContainer = document.getElementById('demoSatMap');
