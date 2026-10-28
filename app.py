@@ -196,16 +196,33 @@ def predict():
             land_area = float(request.form.get("land_area", 1.0))
             season = request.form.get("season", "Kharif").strip()
             soil_type = request.form.get("soil_type", "Alluvial").strip()
+            irrigation_type = request.form.get("irrigation_type", "Canal").strip()
             
             temp = float(request.form.get("temperature", 25.0))
             rainfall = float(request.form.get("rainfall", 750.0))
-            humidity = float(request.form.get("humidity", 65.0))
+            humidity = float(request.form.get("humidity", 60.0))
             
             soil_moisture = request.form.get("soil_moisture")
             soil_moisture = float(soil_moisture) if soil_moisture else None
             
             ndvi = request.form.get("ndvi")
             ndvi = float(ndvi) if ndvi else None
+
+            # Advanced soil chemistry and farm management features
+            n = request.form.get("n")
+            n = int(float(n)) if n else 100
+            p = request.form.get("p")
+            p = int(float(p)) if p else 50
+            k = request.form.get("k")
+            k = int(float(k)) if k else 50
+            soil_ph = request.form.get("soil_ph")
+            soil_ph = float(soil_ph) if soil_ph else 6.5
+            organic_carbon = request.form.get("organic_carbon")
+            organic_carbon = float(organic_carbon) if organic_carbon else 0.75
+            fertilizer_used = request.form.get("fertilizer_used")
+            fertilizer_used = float(fertilizer_used) if fertilizer_used else 180.0
+            sunlight_hours = request.form.get("sunlight_hours")
+            sunlight_hours = float(sunlight_hours) if sunlight_hours else 8.0
 
             # Input validation checks
             if land_area <= 0:
@@ -220,10 +237,18 @@ def predict():
                 "land_area": land_area,
                 "season": season,
                 "soil_type": soil_type,
+                "irrigation_type": irrigation_type,
                 "temperature": temp,
                 "rainfall": rainfall,
                 "humidity": humidity,
                 "soil_moisture": soil_moisture,
+                "n": n,
+                "p": p,
+                "k": k,
+                "soil_ph": soil_ph,
+                "organic_carbon": organic_carbon,
+                "fertilizer_used": fertilizer_used,
+                "sunlight_hours": sunlight_hours,
                 "ndvi": ndvi
             }
 

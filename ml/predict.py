@@ -1,11 +1,12 @@
 """
 AgriPredict AI - Prediction Engine
-Loads the trained Random Forest Pipeline and handles inference, input validation,
-production aggregation, and agronomic factor insights.
+Loads the trained Random Forest Pipeline trained on 10,000 agricultural observations.
+Handles inference, input feature mapping (NPK, soil chemistry, weather, irrigation),
+input validation, production aggregation, and agronomic factor insights.
 """
 
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Dict, Any
 import joblib
 import pandas as pd
 import numpy as np
@@ -13,13 +14,32 @@ import numpy as np
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "models" / "crop_yield_model.joblib"
 
-# National/Historical average benchmarks for comparison (Tonnes per Hectare)
+# Benchmarks for comparison derived from 10,000-row empirical dataset (Tonnes per Hectare)
 CROP_BENCHMARKS = {
-    "Rice": {"avg_yield": 3.60, "min": 1.5, "max": 6.2, "unit": "tonnes/ha"},
-    "Wheat": {"avg_yield": 4.10, "min": 2.0, "max": 5.9, "unit": "tonnes/ha"},
-    "Maize": {"avg_yield": 3.85, "min": 1.8, "max": 7.2, "unit": "tonnes/ha"},
-    "Cotton": {"avg_yield": 2.10, "min": 0.9, "max": 3.6, "unit": "tonnes/ha"},
-    "Sugarcane": {"avg_yield": 78.5, "min": 45.0, "max": 115.0, "unit": "tonnes/ha"},
+    "Rice": {"avg_yield": 9.40, "min": 4.0, "max": 14.5, "unit": "tonnes/ha"},
+    "Wheat": {"avg_yield": 8.72, "min": 3.5, "max": 14.5, "unit": "tonnes/ha"},
+    "Maize": {"avg_yield": 10.08, "min": 5.0, "max": 16.0, "unit": "tonnes/ha"},
+    "Cotton": {"avg_yield": 7.43, "min": 1.5, "max": 13.0, "unit": "tonnes/ha"},
+    "Sugarcane": {"avg_yield": 74.83, "min": 65.0, "max": 85.0, "unit": "tonnes/ha"},
+    "Potato": {"avg_yield": 24.89, "min": 20.0, "max": 31.0, "unit": "tonnes/ha"},
+}
+
+STATE_TO_REGION = {
+    "punjab": "North", "haryana": "North", "uttar pradesh": "North", "himachal pradesh": "North",
+    "delhi": "North", "uttarakhand": "North", "jammu & kashmir": "North",
+    "tamil nadu": "South", "karnataka": "South", "andhra pradesh": "South", "telangana": "South", "kerala": "South",
+    "maharashtra": "West", "gujarat": "West", "rajasthan": "West", "goa": "West",
+    "west bengal": "East", "bihar": "East", "odisha": "East", "jharkhand": "East", "assam": "East",
+    "madhya pradesh": "Central", "chhattisgarh": "Central"
+}
+
+SOIL_MAPPING = {
+    "loamy": "Loamy", "sandy": "Sandy", "clay": "Clay", "silt": "Silt",
+    "alluvial": "Loamy", "black": "Clay", "red": "Loamy"
+}
+
+SEASON_MAPPING = {
+    "kharif": "Kharif", "rabi": "Rabi", "zaid": "Zaid", "summer": "Zaid", "whole year": "Kharif"
 }
 
 class CropYieldPredictor:
@@ -45,9 +65,18 @@ class CropYieldPredictor:
         model = cls.load_model()
 
         # Validate crop type
-        crop = data.get("crop_type", "").strip()
-        if crop not in CROP_BENCHMARKS:
-            raise ValueError(f"Invalid crop type '{crop}'. Supported crops: {list(CROP_BENCHMARKS.keys())}")
+        raw_crop = str(data.get("crop_type", "")).strip().capitalize()
+        # Normalization
+        matched_crop = None
+        for c in CROP_BENCHMARKS:
+            if c.lower() == raw_crop.lower():
+                matched_crop = c
+                break
+        
+        if not matched_crop:
+            raise ValueError(f"Invalid crop type '{raw_crop}'. Supported crops: {list(CROP_BENCHMARKS.keys())}")
+
+        crop = matched_crop
 
         # Land area validation
         try:
@@ -58,24 +87,67 @@ class CropYieldPredictor:
         if land_area <= 0:
             raise ValueError("Land area must be a positive number greater than 0.")
 
-        # Default fallbacks for optional or missing sensors
+        # Map state/region
+        state_input = str(data.get("state", "North")).strip().lower()
+        region = STATE_TO_REGION.get(state_input, data.get("region", "North"))
+        if region not in ["North", "South", "East", "West", "Central"]:
+            region = "North"
+
+        # Map season
+        season_input = str(data.get("season", "Kharif")).strip().lower()
+        season = SEASON_MAPPING.get(season_input, "Kharif")
+
+        # Map soil
+        soil_input = str(data.get("soil_type", "Loamy")).strip().lower()
+        soil_type = SOIL_MAPPING.get(soil_input, "Loamy")
+
+        # Irrigation
+        irrigation = str(data.get("irrigation_type", "Canal")).strip().capitalize()
+        if irrigation not in ["Drip", "Canal", "Rainfed", "Sprinkler"]:
+            irrigation = "Canal"
+
+        # Meteorological and Soil features with agronomic fallbacks
         temp = float(data.get("temperature", 25.0))
         rainfall = float(data.get("rainfall", 750.0))
-        humidity = float(data.get("humidity", 65.0))
-        soil_moisture = float(data.get("soil_moisture", 35.0)) if data.get("soil_moisture") else 35.0
-        ndvi = float(data.get("ndvi", 0.60)) if data.get("ndvi") else 0.60
+        humidity = float(data.get("humidity", 60.0))
+        soil_moisture = float(data.get("soil_moisture", 40.0)) if data.get("soil_moisture") else 40.0
+        
+        # Chemical & farm practices (with sensible agricultural defaults if not provided)
+        n = int(float(data.get("n", 100))) if data.get("n") is not None else 100
+        p = int(float(data.get("p", 50))) if data.get("p") is not None else 50
+        k = int(float(data.get("k", 50))) if data.get("k") is not None else 50
+        soil_ph = float(data.get("soil_ph", 6.5)) if data.get("soil_ph") is not None else 6.5
+        organic_carbon = float(data.get("organic_carbon", 0.75)) if data.get("organic_carbon") is not None else 0.75
+        sunlight_hours = float(data.get("sunlight_hours", 8.0)) if data.get("sunlight_hours") is not None else 8.0
+        wind_speed = float(data.get("wind_speed", 12.0)) if data.get("wind_speed") is not None else 12.0
+        altitude = int(float(data.get("altitude", 250))) if data.get("altitude") is not None else 250
+        fertilizer_used = float(data.get("fertilizer_used", 180.0)) if data.get("fertilizer_used") is not None else 180.0
+        pesticide_used = float(data.get("pesticide_used", 12.0)) if data.get("pesticide_used") is not None else 12.0
+        
+        # Satellite NDVI
+        ndvi = float(data.get("ndvi", 0.65)) if data.get("ndvi") is not None else 0.65
 
         # Build feature DataFrame matching trained pipeline
         feature_dict = {
-            "crop_type": [crop],
-            "state": [data.get("state", "Punjab").strip()],
-            "season": [data.get("season", "Kharif").strip()],
-            "soil_type": [data.get("soil_type", "Alluvial").strip()],
-            "temperature": [temp],
-            "rainfall": [rainfall],
-            "humidity": [humidity],
-            "soil_moisture": [soil_moisture],
-            "ndvi": [ndvi]
+            "Crop_Type": [crop],
+            "Region": [region],
+            "Season": [season],
+            "Soil_Type": [soil_type],
+            "Irrigation_Type": [irrigation],
+            "N": [n],
+            "P": [p],
+            "K": [k],
+            "Soil_pH": [soil_ph],
+            "Soil_Moisture": [soil_moisture],
+            "Organic_Carbon": [organic_carbon],
+            "Temperature": [temp],
+            "Humidity": [humidity],
+            "Rainfall": [rainfall],
+            "Sunlight_Hours": [sunlight_hours],
+            "Wind_Speed": [wind_speed],
+            "Altitude": [altitude],
+            "Fertilizer_Used": [fertilizer_used],
+            "Pesticide_Used": [pesticide_used]
         }
         input_df = pd.DataFrame(feature_dict)
 
@@ -92,7 +164,7 @@ class CropYieldPredictor:
 
         # NDVI health classification
         if ndvi >= 0.70:
-            ndvi_status = "Very Healthy / High Vigour"
+            ndvi_status = "Very Healthy / Peak Canopy Vigour"
             ndvi_badge = "success"
         elif ndvi >= 0.50:
             ndvi_status = "Normal Vegetative Vigor"
@@ -106,15 +178,24 @@ class CropYieldPredictor:
 
         return {
             "crop_type": crop,
-            "state": feature_dict["state"][0],
-            "district": data.get("district", "General Region"),
-            "season": feature_dict["season"][0],
-            "soil_type": feature_dict["soil_type"][0],
+            "state": data.get("state", region),
+            "region": region,
+            "district": data.get("district", "General Farmland Region"),
+            "season": season,
+            "soil_type": soil_type,
+            "irrigation_type": irrigation,
             "land_area": land_area,
             "temperature": temp,
             "rainfall": rainfall,
             "humidity": humidity,
             "soil_moisture": soil_moisture,
+            "n": n,
+            "p": p,
+            "k": k,
+            "soil_ph": soil_ph,
+            "organic_carbon": organic_carbon,
+            "sunlight_hours": sunlight_hours,
+            "fertilizer_used": fertilizer_used,
             "ndvi": ndvi,
             "ndvi_status": ndvi_status,
             "ndvi_badge": ndvi_badge,

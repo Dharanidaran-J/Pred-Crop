@@ -68,6 +68,7 @@
                 <option value="Maize" {% if request.args.get('crop') == 'Maize' %}selected{% endif %}>Maize (Corn)</option>
                 <option value="Cotton" {% if request.args.get('crop') == 'Cotton' %}selected{% endif %}>Cotton (Kapas)</option>
                 <option value="Sugarcane" {% if request.args.get('crop') == 'Sugarcane' %}selected{% endif %}>Sugarcane (Ganna)</option>
+                <option value="Potato" {% if request.args.get('crop') == 'Potato' %}selected{% endif %}>Potato (Aloo)</option>
               </select>
             </div>
 
@@ -113,25 +114,75 @@
             </div>
           </div>
 
-          <div class="grid-2">
+          <div class="grid-3">
             <div class="form-group">
               <label class="form-label" for="soil_type">Soil Classification <span style="color: #ef4444;">*</span></label>
               <select class="form-select" id="soil_type" name="soil_type" required>
-                <option value="Alluvial" selected>Alluvial Soil (High fertility)</option>
-                <option value="Black">Black Soil (Regur / Cotton soil)</option>
-                <option value="Clay">Clay Soil (High moisture retention)</option>
-                <option value="Loamy">Loamy Soil (Ideal balanced texture)</option>
-                <option value="Red">Red Soil (Well-drained)</option>
-                <option value="Sandy">Sandy Soil (High aeration)</option>
+                <option value="Loamy" selected>Loamy Soil (Balanced)</option>
+                <option value="Sandy">Sandy Soil (Aerated)</option>
+                <option value="Clay">Clay Soil (Moisture Retentive)</option>
+                <option value="Silt">Silt Soil (Fine textured)</option>
+                <option value="Alluvial">Alluvial Soil</option>
+                <option value="Black">Black Soil (Regur)</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="soil_moisture">Soil Moisture % (Optional)</label>
-              <input type="number" step="0.1" min="5" max="80" class="form-control" id="soil_moisture" name="soil_moisture" value="34.5" placeholder="e.g. 35.0">
-              <div class="form-hint">Volumetric water content (sensor or modeled)</div>
+              <label class="form-label" for="irrigation_type">Irrigation Method <span style="color: #ef4444;">*</span></label>
+              <select class="form-select" id="irrigation_type" name="irrigation_type" required>
+                <option value="Canal" selected>Canal Irrigation</option>
+                <option value="Drip">Drip Irrigation (Precision)</option>
+                <option value="Sprinkler">Sprinkler System</option>
+                <option value="Rainfed">Rainfed / Natural</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="soil_moisture">Soil Moisture %</label>
+              <input type="number" step="0.1" min="5" max="80" class="form-control" id="soil_moisture" name="soil_moisture" value="40.0" placeholder="e.g. 40.0">
+              <div class="form-hint">Volumetric water content</div>
             </div>
           </div>
+
+          <!-- Collapsible Advanced Soil Chemistry & NPK Section -->
+          <details style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-top: 1rem;">
+            <summary style="font-weight: 700; color: var(--primary-dark); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-flask"></i> Advanced Soil Chemistry & Nutrient Profiling (Optional N-P-K & pH)
+            </summary>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin: 0.5rem 0 1rem;">
+              Calibrated defaults based on regional agronomic averages are pre-filled below. Modify if you have soil lab test results.
+            </div>
+
+            <div class="grid-3">
+              <div class="form-group">
+                <label class="form-label" for="n">Nitrogen (N) kg/ha</label>
+                <input type="number" class="form-control" id="n" name="n" value="100" min="10" max="250">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="p">Phosphorus (P) kg/ha</label>
+                <input type="number" class="form-control" id="p" name="p" value="50" min="5" max="150">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="k">Potassium (K) kg/ha</label>
+                <input type="number" class="form-control" id="k" name="k" value="50" min="5" max="180">
+              </div>
+            </div>
+
+            <div class="grid-3">
+              <div class="form-group">
+                <label class="form-label" for="soil_ph">Soil pH Level</label>
+                <input type="number" step="0.1" class="form-control" id="soil_ph" name="soil_ph" value="6.5" min="4.5" max="9.0">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="organic_carbon">Organic Carbon %</label>
+                <input type="number" step="0.01" class="form-control" id="organic_carbon" name="organic_carbon" value="0.75" min="0.1" max="3.0">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="fertilizer_used">Fertilizer Applied (kg/ha)</label>
+                <input type="number" step="0.1" class="form-control" id="fertilizer_used" name="fertilizer_used" value="180.0" min="20" max="500">
+              </div>
+            </div>
+          </details>
         </div>
 
         <!-- Section 2: Meteorological & Satellite Indicators -->

@@ -4,13 +4,14 @@
  * Leaflet satellite maps, Chart.js visualizations, and local persistence.
  */
 
-// National Agronomic Benchmarks
+// National Agronomic Benchmarks (Trained on 10,000 Agricultural Records)
 const BENCHMARKS = {
-  "Rice": { avg_yield: 3.60, min: 1.5, max: 6.2, unit: "tonnes/ha", base: 3.6 },
-  "Wheat": { avg_yield: 4.10, min: 2.0, max: 5.9, unit: "tonnes/ha", base: 4.1 },
-  "Maize": { avg_yield: 3.85, min: 1.8, max: 7.2, unit: "tonnes/ha", base: 3.8 },
-  "Cotton": { avg_yield: 2.10, min: 0.9, max: 3.6, unit: "tonnes/ha", base: 2.1 },
-  "Sugarcane": { avg_yield: 78.5, min: 45.0, max: 115.0, unit: "tonnes/ha", base: 78.5 }
+  "Rice": { avg_yield: 9.40, min: 4.0, max: 14.5, unit: "tonnes/ha", base: 9.4 },
+  "Wheat": { avg_yield: 8.72, min: 3.5, max: 14.5, unit: "tonnes/ha", base: 8.7 },
+  "Maize": { avg_yield: 10.08, min: 5.0, max: 16.0, unit: "tonnes/ha", base: 10.1 },
+  "Cotton": { avg_yield: 7.43, min: 1.5, max: 13.0, unit: "tonnes/ha", base: 7.4 },
+  "Sugarcane": { avg_yield: 74.83, min: 65.0, max: 85.0, unit: "tonnes/ha", base: 74.8 },
+  "Potato": { avg_yield: 24.89, min: 20.0, max: 31.0, unit: "tonnes/ha", base: 24.9 }
 };
 
 const CITY_COORDS = {

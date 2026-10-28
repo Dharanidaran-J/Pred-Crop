@@ -1,26 +1,70 @@
 {
     "model_type": "RandomForestRegressor",
-    "n_estimators": 120,
-    "train_samples": 2600,
-    "test_samples": 650,
-    "test_mae": 0.8539,
-    "test_rmse": 1.9941,
-    "test_r2": 0.9959,
-    "train_r2": 0.9994,
-    "cv_r2_mean": 0.9969,
-    "cv_r2_std": 0.0004,
+    "n_estimators": 100,
+    "max_depth": 16,
+    "total_records": 10000,
+    "train_samples": 8000,
+    "test_samples": 2000,
+    "test_mae": 0.9028,
+    "test_rmse": 1.1261,
+    "test_r2": 0.9978,
+    "train_r2": 0.9996,
+    "cv_r2_mean": 0.9977,
+    "cv_r2_std": 0.0001,
+    "per_crop_metrics": {
+        "Rice": {
+            "samples": 340,
+            "mae": 0.9426,
+            "r2": 0.5493
+        },
+        "Potato": {
+            "samples": 334,
+            "mae": 0.9178,
+            "r2": 0.5529
+        },
+        "Sugarcane": {
+            "samples": 327,
+            "mae": 0.8891,
+            "r2": 0.5133
+        },
+        "Cotton": {
+            "samples": 333,
+            "mae": 0.9195,
+            "r2": 0.5624
+        },
+        "Wheat": {
+            "samples": 334,
+            "mae": 0.8774,
+            "r2": 0.5404
+        },
+        "Maize": {
+            "samples": 332,
+            "mae": 0.8692,
+            "r2": 0.5525
+        }
+    },
     "categorical_features": [
-        "crop_type",
-        "state",
-        "season",
-        "soil_type"
+        "Crop_Type",
+        "Region",
+        "Season",
+        "Soil_Type",
+        "Irrigation_Type"
     ],
     "numerical_features": [
-        "temperature",
-        "rainfall",
-        "humidity",
-        "soil_moisture",
-        "ndvi"
+        "N",
+        "P",
+        "K",
+        "Soil_pH",
+        "Soil_Moisture",
+        "Organic_Carbon",
+        "Temperature",
+        "Humidity",
+        "Rainfall",
+        "Sunlight_Hours",
+        "Wind_Speed",
+        "Altitude",
+        "Fertilizer_Used",
+        "Pesticide_Used"
     ],
-    "target": "yield"
+    "target": "Crop_Yield_ton_per_hectare"
 }

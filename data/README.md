@@ -1,43 +1,53 @@
-# AgriPredict AI - Dataset Documentation
+# AgriPredict AI - Comprehensive Agricultural Dataset Documentation
 
 ## Overview
-This dataset contains empirical agricultural crop yield observations across key agro-climatic zones, compiled using historical data from the **Directorate of Economics and Statistics (DES)**, **Department of Agriculture & Farmers Welfare (DA&FW)**, Government of India, cross-referenced with **ICRISAT (International Crops Research Institute for the Semi-Arid Tropics)** and **Copernicus Sentinel-2 NDVI** spatial vegetation datasets.
+This dataset contains **10,000 agro-climatic and soil chemistry observation records** spanning 6 major staple and commercial crops. It integrates ground macronutrients (N-P-K), soil physicochemical parameters (pH, organic carbon, moisture), atmospheric weather, topographic altitude, and farm management practices (irrigation, fertilizer, pesticide).
 
 ## Dataset Metadata
 - **File Name:** `crop_yield_dataset.csv`
-- **Number of Records:** 2,500+ agro-climatic observation rows
+- **Total Records:** 10,000 complete observations (0 missing values)
+- **Features:** 19 independent predictive variables + 1 target variable
 - **Primary Crops Covered:**
   - `Rice` (Oryza sativa)
   - `Wheat` (Triticum aestivum)
   - `Maize` (Zea mays)
   - `Cotton` (Gossypium hirsutum)
   - `Sugarcane` (Saccharum officinarum)
-- **Geographic Coverage:** Top agricultural states including Punjab, Uttar Pradesh, Maharashtra, Karnataka, Haryana, Madhya Pradesh, Gujarat, Andhra Pradesh, Tamil Nadu, and West Bengal.
-- **License:** Open Government Data (OGD) / CC-BY 4.0 Creative Commons Attribution
+  - `Potato` (Solanum tuberosum)
+- **Geographic Regions:** North, South, East, West, Central
 
-## Schema & Feature Dictionary
+## Feature Dictionary & Agronomic Ranges
 
-| Feature Name | Data Type | Units | Description | Typical Agronomic Range |
+| Feature Name | Category | Data Type | Units / Values | Description |
 |:---|:---|:---|:---|:---|
-| `crop_type` | Categorical | String | Cultivated crop variety | Rice, Wheat, Maize, Cotton, Sugarcane |
-| `state` | Categorical | String | Indian State / Agro-climatic zone | Punjab, Uttar Pradesh, etc. |
-| `district` | Categorical | String | District administrative division | Ludhiana, Varanasi, etc. |
-| `season` | Categorical | String | Cropping season | Kharif, Rabi, Summer, Whole Year |
-| `soil_type` | Categorical | String | Dominant soil classification | Alluvial, Black, Clay, Loamy, Red, Sandy |
-| `temperature` | Numerical | °C | Average temperature during vegetative/reproductive stage | 14.0°C - 38.0°C |
-| `rainfall` | Numerical | mm | Cumulative seasonal precipitation | 250 mm - 2,200 mm |
-| `humidity` | Numerical | % | Mean relative air humidity | 35% - 92% |
-| `soil_moisture` | Numerical | % | Volumetric soil moisture content | 12% - 55% |
-| `ndvi` | Numerical | Normalized [-1 to 1] | Sentinel-2 / MODIS Normalized Difference Vegetation Index | 0.20 - 0.88 |
-| `yield` (Target) | Numerical | Tonnes / Hectare | Measured agricultural harvest yield | Rice (1.8-6.2), Wheat (2.2-5.8), Maize (2.0-7.5), Cotton (0.8-3.2), Sugarcane (45.0-105.0) |
+| `Crop_Type` | Categorical | String | Rice, Wheat, Potato, Cotton, Maize, Sugarcane | Target crop species |
+| `Region` | Categorical | String | North, South, East, West, Central | Macro agro-ecological zone |
+| `Season` | Categorical | String | Kharif, Rabi, Zaid | Cropping cultivation season |
+| `Soil_Type` | Categorical | String | Loamy, Sandy, Silt, Clay | Dominant soil textural class |
+| `Irrigation_Type` | Categorical | String | Drip, Canal, Rainfed, Sprinkler | Water delivery method |
+| `N` | Soil Nutrient | Integer | kg/ha (20 - 180) | Available soil Nitrogen |
+| `P` | Soil Nutrient | Integer | kg/ha (10 - 100) | Available soil Phosphorus |
+| `K` | Soil Nutrient | Integer | kg/ha (15 - 150) | Available soil Potassium |
+| `Soil_pH` | Soil Property | Float | pH scale (5.0 - 8.5) | Soil acidity / alkalinity |
+| `Soil_Moisture` | Soil Property | Float | % (15% - 65%) | Volumetric water content |
+| `Organic_Carbon` | Soil Property | Float | % (0.2% - 1.5%) | Soil organic matter fraction |
+| `Temperature` | Weather | Float | °C (10.0°C - 40.0°C) | Mean ambient growth temperature |
+| `Humidity` | Weather | Float | % (30% - 90%) | Relative atmospheric humidity |
+| `Rainfall` | Weather | Float | mm (200 mm - 2500 mm) | Cumulative precipitation |
+| `Sunlight_Hours` | Weather | Float | Hours/day (4 - 12 hrs) | Daily photoperiod duration |
+| `Wind_Speed` | Weather | Float | km/h (2 - 25 km/h) | Average wind velocity |
+| `Altitude` | Topography | Integer | Meters (50 - 1200 m) | Field elevation above sea level |
+| `Fertilizer_Used` | Farm Practice | Float | kg/ha (50 - 350 kg/ha) | Total chemical/bio-fertilizer applied |
+| `Pesticide_Used` | Farm Practice | Float | kg/ha (1 - 30 kg/ha) | Plant protection chemical load |
+| `Crop_Yield_ton_per_hectare` | **Target** | Float | Tonnes / Hectare | Measured agricultural harvest yield |
 
-## Data Preprocessing Pipeline
-1. **Missing Value Imputation:** Handled via median imputation for numerical features and most frequent strategy for categorical features.
-2. **Feature Encoding:** `OneHotEncoder(handle_unknown='ignore')` applied to categorical features (`crop_type`, `state`, `season`, `soil_type`).
-3. **Feature Scaling:** `StandardScaler` applied to continuous numerical environmental variables (`temperature`, `rainfall`, `humidity`, `soil_moisture`, `ndvi`).
-4. **Target Variable:** Continuous `yield` (t/ha) predicted using `RandomForestRegressor`.
+## Crop Yield Distribution (Tonnes / Hectare)
 
-## Limitations & Considerations
-- Yield estimates represent farm-gate potential under standard agronomic practices.
-- Catastrophic events such as severe hailstorms, pest infestations (e.g. desert locusts), or extreme flash floods may cause local anomalies beyond the trained weather bounds.
-- Satellite NDVI values require cloud-masking during the peak monsoon season.
+| Crop Type | Sample Count | Mean Yield | Min Yield | Max Yield | Standard Deviation |
+|:---|:---|:---|:---|:---|:---|
+| **Cotton** | 1,666 | 7.43 t/ha | 1.76 | 12.86 | 1.73 |
+| **Wheat** | 1,671 | 8.72 t/ha | 3.78 | 14.09 | 1.65 |
+| **Rice** | 1,702 | 9.40 t/ha | 4.07 | 14.20 | 1.66 |
+| **Maize** | 1,658 | 10.08 t/ha | 5.48 | 15.60 | 1.70 |
+| **Potato** | 1,670 | 24.89 t/ha | 20.32 | 30.27 | 1.68 |
+| **Sugarcane** | 1,633 | 74.83 t/ha | 69.69 | 80.99 | 1.64 |
