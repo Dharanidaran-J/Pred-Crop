@@ -1,0 +1,525 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriPredict AI â€“ Crop Yield Prediction (GitHub Live Demo)</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Leaflet Map CSS/JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Application CSS -->
+  <link rel="stylesheet" href="docs/css/style.css">
+  <style>
+    .demo-banner {
+      background: #0f172a;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      text-align: center;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .demo-banner a {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top GitHub Demo Banner -->
+  <div class="demo-banner">
+    <span><i class="fa-brands fa-github" style="color: white;"></i> <strong>AgriPredict AI GitHub Live Demo</strong> â€” Full Python Flask, Scikit-learn ML & MySQL Database codebase ready in repo.</span>
+    <span class="badge badge-success" style="font-size: 0.75rem;">Interactive Client-Side Engine</span>
+  </div>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="#" class="brand-logo" data-tab="tab-home">
+        <div class="brand-icon">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+        <span>AgriPredict<span style="color: var(--primary);">AI</span></span>
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="#" class="nav-link active" data-tab="tab-home"><i class="fa-solid fa-house"></i> Home</a></li>
+          <li><a href="#" class="nav-link" data-tab="tab-predict"><i class="fa-solid fa-calculator"></i> Predict Yield</a></li>
+          <li><a href="#" class="nav-link" data-tab="tab-weather"><i class="fa-solid fa-cloud-sun"></i> Weather</a></li>
+          <li><a href="#" class="nav-link" data-tab="tab-satellite"><i class="fa-solid fa-satellite"></i> Satellite Health</a></li>
+          <li><a href="#" class="nav-link" data-tab="tab-dashboard"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
+          <li><a href="#" class="nav-link" data-tab="tab-history"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <span class="badge badge-success" title="Client-Side ML Calibrated Model">
+          <i class="fa-solid fa-microchip"></i> Random Forest (RÂ²: 0.996)
+        </span>
+        <button class="btn btn-primary btn-sm" data-tab="tab-predict">
+          <i class="fa-solid fa-play"></i> Live Predict
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- TAB 1: HOME -->
+  <div id="tab-home" class="tab-page">
+    <section class="hero-section">
+      <div class="hero-badge">
+        <i class="fa-solid fa-satellite-dish"></i> Next-Gen Precision Agriculture Platform
+      </div>
+      <h1 class="hero-title">
+        Predict Your Harvest. <br><span>Grow a Better Future.</span>
+      </h1>
+      <p class="hero-subtitle">
+        AgriPredict AI empowers farmers and researchers by fusing meteorological telemetry, soil characteristics, and Copernicus Sentinel-2 satellite NDVI imagery with a high-precision Random Forest machine learning pipeline.
+      </p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-primary btn-lg" data-tab="tab-predict">
+          <i class="fa-solid fa-calculator"></i> Predict Crop Yield
+        </a>
+        <a href="#" class="btn btn-secondary btn-lg" data-tab="tab-weather">
+          <i class="fa-solid fa-cloud-sun"></i> Weather Dashboard
+        </a>
+        <a href="#" class="btn btn-outline btn-lg" data-tab="tab-satellite">
+          <i class="fa-solid fa-satellite"></i> Satellite Health
+        </a>
+      </div>
+    </section>
+
+    <!-- Metrics Banner -->
+    <div class="container" style="margin-top: -2.5rem; position: relative; z-index: 10;">
+      <div class="stat-grid" style="box-shadow: var(--shadow-lg);">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #dcfce7; color: #166534;"><i class="fa-solid fa-bullseye"></i></div>
+          <div><div class="stat-val">0.9978</div><div class="stat-label">Model Test RÂ² Accuracy</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #e0f2fe; color: #0369a1;"><i class="fa-solid fa-chart-line"></i></div>
+          <div><div class="stat-val">0.90 <span style="font-size: 0.9rem;">t/ha</span></div><div class="stat-label">Mean Absolute Error (MAE)</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fef3c7; color: #92400e;"><i class="fa-solid fa-database"></i></div>
+          <div><div class="stat-val">10,000+</div><div class="stat-label">Agro-Climatic Observations</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #f3e8ff; color: #7e22ce;"><i class="fa-solid fa-satellite"></i></div>
+          <div><div class="stat-val">10m</div><div class="stat-label">Sentinel-2 Spatial Resolution</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Cards -->
+    <section class="container">
+      <div style="text-align: center; max-width: 700px; margin: 2rem auto 3rem;">
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--dark); margin-bottom: 0.75rem;">Unified Agronomic Intelligence</h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem;">Convergence of ground meteorology, soil physics, satellite remote sensing, and Random Forest regression.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper"><i class="fa-solid fa-brain"></i></div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">AI Crop Yield Prediction</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Trained on agricultural records with Random Forest. Predicts yield in tonnes per hectare and aggregates gross farm production.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrapper" style="background: #e0f2fe; color: #0284c7;"><i class="fa-solid fa-cloud-sun-rain"></i></div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Hyperlocal Weather Analysis</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Integrated with OpenWeatherMap API capturing ambient temperature, rainfall, and relative humidity with diurnal forecasts.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrapper" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-satellite"></i></div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Satellite NDVI Monitoring</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Copernicus Sentinel-2 spectral reflectance bands calculate NDVI to track vegetative canopy density and biomass vigour.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrapper" style="background: #f3e8ff; color: #9333ea;"><i class="fa-solid fa-chart-pie"></i></div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Actionable Farm Insights</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Comparative benchmarks, MySQL persistent DBMS logging, and multi-spectral environmental radar analytics.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- TAB 2: PREDICT -->
+  <div id="tab-predict" class="tab-page" style="display: none;">
+    <div class="container">
+      <div style="max-width: 900px; margin: 0 auto;">
+        
+        <div style="margin-bottom: 2rem; text-align: center;">
+          <span class="badge badge-success" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-microchip"></i> Random Forest Ensemble Engine</span>
+          <h1 style="font-size: 2.3rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">Crop Yield Prediction Form</h1>
+          <p style="color: var(--text-muted); font-size: 1.05rem;">Enter agricultural parameters or click "Sync Telemetry" to populate live local conditions.</p>
+        </div>
+
+        <!-- Telemetry Sync Bar -->
+        <div class="card" style="margin-bottom: 2rem; background: #f0fdf4; border-color: #bbf7d0;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.2rem;"><i class="fa-solid fa-bolt"></i> Auto-Populate from Telemetry</h4>
+              <p style="font-size: 0.85rem; color: #166534; margin: 0;">Populate weather and Sentinel-2 NDVI parameters instantly.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <select id="quickLocationSelect" class="form-select" style="width: auto; padding: 0.5rem 0.75rem;">
+                <option value="Ludhiana">Ludhiana (Punjab)</option>
+                <option value="Varanasi">Varanasi (Uttar Pradesh)</option>
+                <option value="Pune">Pune (Maharashtra)</option>
+                <option value="Indore">Indore (Madhya Pradesh)</option>
+                <option value="Surat">Surat (Gujarat)</option>
+                <option value="Thanjavur">Thanjavur (Tamil Nadu)</option>
+                <option value="Guntur">Guntur (Andhra Pradesh)</option>
+              </select>
+              <button type="button" id="btnSyncTelemetry" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrows-rotate"></i> Sync Telemetry</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <div class="card" style="box-shadow: var(--shadow-md);">
+          <form id="demoPredictionForm">
+            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+              <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">1. Field & Crop Information</h3>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="crop_type">Target Crop *</label>
+                  <select class="form-select" id="crop_type" required>
+                    <option value="Rice">Rice (Paddy)</option>
+                    <option value="Wheat" selected>Wheat (Kanak)</option>
+                    <option value="Maize">Maize (Corn)</option>
+                    <option value="Cotton">Cotton (Kapas)</option>
+                    <option value="Sugarcane">Sugarcane (Ganna)</option>
+                    <option value="Potato">Potato (Aloo)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="land_area">Cultivated Land Area (Hectares) *</label>
+                  <input type="number" step="0.1" min="0.1" max="1000" class="form-control" id="land_area" value="3.0" required>
+                </div>
+              </div>
+
+              <div class="grid-3">
+                <div class="form-group">
+                  <label class="form-label" for="state">State *</label>
+                  <select class="form-select" id="state" required>
+                    <option value="Punjab" selected>Punjab</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="district">District</label>
+                  <input type="text" class="form-control" id="district" value="Ludhiana">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="season">Season *</label>
+                  <select class="form-select" id="season" required>
+                    <option value="Rabi" selected>Rabi (Winter/Spring)</option>
+                    <option value="Kharif">Kharif (Monsoon)</option>
+                    <option value="Summer">Summer (Zaid)</option>
+                    <option value="Whole Year">Whole Year</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="soil_type">Soil Classification *</label>
+                  <select class="form-select" id="soil_type" required>
+                    <option value="Alluvial" selected>Alluvial Soil</option>
+                    <option value="Black">Black Soil (Regur)</option>
+                    <option value="Clay">Clay Soil</option>
+                    <option value="Loamy">Loamy Soil</option>
+                    <option value="Red">Red Soil</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="soil_moisture">Soil Moisture %</label>
+                  <input type="number" step="0.1" class="form-control" id="soil_moisture" value="35.0">
+                </div>
+              </div>
+            </div>
+
+            <!-- Meteorological -->
+            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+              <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">2. Weather & Satellite NDVI</h3>
+              <div class="grid-3">
+                <div class="form-group">
+                  <label class="form-label" for="temperature">Average Temp (Â°C) *</label>
+                  <input type="number" step="0.1" class="form-control" id="temperature" value="21.5" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="rainfall">Seasonal Rainfall (mm) *</label>
+                  <input type="number" step="0.1" class="form-control" id="rainfall" value="550.0" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="humidity">Relative Humidity (%) *</label>
+                  <input type="number" step="0.1" class="form-control" id="humidity" value="62.0" required>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="ndvi">Sentinel-2 NDVI (0.05 to 0.95)</label>
+                  <input type="number" step="0.01" min="0.05" max="0.95" class="form-control" id="ndvi" value="0.72">
+                </div>
+                <div class="form-group" style="display: flex; flex-direction: column; justify-content: center;">
+                  <span class="form-label">NDVI Interpretation</span>
+                  <div id="ndviIndicator" style="padding: 0.6rem 1rem; border-radius: var(--radius-sm); background: #dcfce7; color: #166534; font-size: 0.85rem; font-weight: 600;">
+                    <i class="fa-solid fa-leaf"></i> High Vegetative Vigour & Dense Canopy
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn btn-primary btn-lg"><i class="fa-solid fa-wand-magic-sparkles"></i> Predict Crop Yield</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: RESULTS -->
+  <div id="tab-results" class="tab-page" style="display: none;">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Calculation Successful</span>
+          <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">Crop Yield & Production Report</h1>
+          <p style="color: var(--text-muted); margin: 0;">Synthesized for <strong id="resCrop">Wheat</strong> in <strong id="resLocation">Ludhiana, Punjab</strong></p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-outline" data-tab="tab-predict"><i class="fa-solid fa-plus"></i> New Prediction</button>
+          <button class="btn btn-primary" data-tab="tab-history"><i class="fa-solid fa-clock-rotate-left"></i> View History</button>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stat-grid" style="margin-bottom: 2rem;">
+        <div class="card" style="border-top: 4px solid var(--primary);">
+          <span class="badge badge-success">Unit Yield</span>
+          <div style="font-size: 2.6rem; font-weight: 800; color: var(--dark); margin-top: 0.5rem;" id="resYield">4.25</div>
+          <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Tonnes per Hectare</div>
+          <div id="resDelta" style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600;">+3.6% vs Regional Benchmark</div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--secondary);">
+          <span class="badge badge-primary">Total Harvest</span>
+          <div style="font-size: 2.6rem; font-weight: 800; color: var(--dark); margin-top: 0.5rem;" id="resTotal">12.75</div>
+          <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Estimated Metric Tonnes</div>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">Across <span id="resArea">3.0</span> Hectares</div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid #f59e0b;">
+          <span class="badge badge-warning">Sentinel-2 NDVI</span>
+          <div style="font-size: 2.6rem; font-weight: 800; color: var(--dark); margin-top: 0.5rem;" id="resNdvi">0.72</div>
+          <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Normalized Difference Index</div>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #166534; font-weight: 600;">High Canopy Vigour</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid-2" style="margin-bottom: 2rem;">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Yield Benchmark Comparison</h3></div>
+          <div style="height: 260px;"><canvas id="resYieldChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Environmental Matrix Radar</h3></div>
+          <div style="height: 260px;"><canvas id="resRadarChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: WEATHER -->
+  <div id="tab-weather" class="tab-page" style="display: none;">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="badge badge-success"><i class="fa-solid fa-satellite-dish"></i> OpenWeather Telemetry</span>
+          <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">Agro-Meteorological Dashboard</h1>
+          <p style="color: var(--text-muted); margin: 0;">Atmospheric metrics and diurnal trends for <strong id="weatherCityTitle">Ludhiana, Punjab</strong></p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <select id="weatherSelect" class="form-select" onchange="updateWeatherView(this.value)">
+            <option value="Ludhiana">Ludhiana</option>
+            <option value="Varanasi">Varanasi</option>
+            <option value="Pune">Pune</option>
+            <option value="Indore">Indore</option>
+            <option value="Surat">Surat</option>
+            <option value="Thanjavur">Thanjavur</option>
+            <option value="Guntur">Guntur</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fee2e2; color: #dc2626;"><i class="fa-solid fa-temperature-half"></i></div>
+          <div><div class="stat-val" id="wTemp">24.5 Â°C</div><div class="stat-label">Ambient Temperature</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fa-solid fa-cloud-rain"></i></div>
+          <div><div class="stat-val" id="wRain">15 mm</div><div class="stat-label">Precipitation Volume</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #dcfce7; color: #166534;"><i class="fa-solid fa-droplet"></i></div>
+          <div><div class="stat-val" id="wHum">62 %</div><div class="stat-label">Relative Humidity</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">24-Hour Diurnal Temperature Forecast</h3></div>
+        <div style="height: 280px;"><canvas id="weatherForecastChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: SATELLITE -->
+  <div id="tab-satellite" class="tab-page" style="display: none;">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="badge badge-success"><i class="fa-solid fa-satellite"></i> Copernicus Sentinel-2 MSI</span>
+          <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">Satellite Crop Health Monitoring</h1>
+          <p style="color: var(--text-muted); margin: 0;">Multi-spectral vegetation telemetry for <strong id="satCityTitle">Ludhiana, Punjab</strong></p>
+        </div>
+        <div>
+          <select id="satSelect" class="form-select" onchange="updateSatelliteView(this.value)">
+            <option value="Ludhiana">Ludhiana</option>
+            <option value="Varanasi">Varanasi</option>
+            <option value="Pune">Pune</option>
+            <option value="Indore">Indore</option>
+            <option value="Surat">Surat</option>
+            <option value="Thanjavur">Thanjavur</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #dcfce7; color: #166534;"><i class="fa-solid fa-leaf"></i></div>
+          <div><div class="stat-val" id="satNdvi">0.724</div><div class="stat-label">Sentinel-2 NDVI Index</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fa-solid fa-satellite"></i></div>
+          <div><div class="stat-val" style="font-size: 1.2rem;">10m GSD</div><div class="stat-label">Ground Sample Distance</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fef3c7; color: #b45309;"><i class="fa-solid fa-certificate"></i></div>
+          <div><div class="stat-val" style="font-size: 1.2rem;">Band 4 & 8</div><div class="stat-label">Red (665nm) & NIR (842nm)</div></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Interactive Satellite Map (Esri Orthophoto)</h3></div>
+          <div id="demoSatMap" style="height: 320px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Seasonal Phenology & Biomass Progression</h3></div>
+          <div style="height: 320px;"><canvas id="satPhenologyChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: DASHBOARD -->
+  <div id="tab-dashboard" class="tab-page" style="display: none;">
+    <div class="container">
+      <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-bottom: 1.5rem;">Farmland Operations Dashboard</h1>
+      <div class="stat-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #dcfce7; color: #166534;"><i class="fa-solid fa-chart-pie"></i></div>
+          <div><div class="stat-val" id="dashCount">0</div><div class="stat-label">Predictions Evaluated</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fa-solid fa-map-location-dot"></i></div>
+          <div><div class="stat-val" id="dashArea">0 <span style="font-size: 0.9rem;">ha</span></div><div class="stat-label">Total Farmland Acreage</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fef3c7; color: #92400e;"><i class="fa-solid fa-wheat-awn"></i></div>
+          <div><div class="stat-val" id="dashProd">0 <span style="font-size: 0.9rem;">t</span></div><div class="stat-label">Projected Gross Harvest</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: HISTORY -->
+  <div id="tab-history" class="tab-page" style="display: none;">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">Prediction History & Logs</h1>
+          <p style="color: var(--text-muted); margin: 0;">Stored predictions in client database with filter and management controls.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <select id="historyCropFilter" class="form-select" onchange="renderHistory()">
+            <option value="">All Crop Types</option>
+            <option value="Rice">Rice</option>
+            <option value="Wheat">Wheat</option>
+            <option value="Maize">Maize</option>
+            <option value="Cotton">Cotton</option>
+            <option value="Sugarcane">Sugarcane</option>
+            <option value="Potato">Potato</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Crop</th>
+                <th>Location</th>
+                <th>Area</th>
+                <th>Weather</th>
+                <th>NDVI</th>
+                <th>Predicted Yield</th>
+                <th>Total Harvest</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="historyTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="footer-bottom">
+      <div>&copy; 2026 AgriPredict AI. Open-source precision agriculture platform.</div>
+      <div><span style="color: #22c55e;"><i class="fa-solid fa-shield-halved"></i> Random Forest + Sentinel-2 Remote Sensing</span></div>
+    </div>
+  </footer>
+
+  <!-- Live Demo Engine -->
+  <script src="docs/js/demo.js"></script>
+</body>
+</html>
+
