@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction History – AgriPredict AI{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Header & Filter Bar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="badge badge-success"><i class="fa-solid fa-database"></i> MySQL Records</span>
+      <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">
+        Prediction Archive & History
+      </h1>
+      <p style="color: var(--text-muted); margin: 0;">
+        Filter, inspect, and manage your saved crop yield estimations.
+      </p>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="GET" action="{{ url_for('history') }}" style="display: flex; gap: 0.5rem; align-items: center;">
+      <select name="crop" class="form-select" style="width: auto; padding: 0.5rem 0.75rem;" onchange="this.form.submit()">
+        <option value="">All Crop Types</option>
+        {% for c in supported_crops %}
+          <option value="{{ c }}" {% if selected_crop == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      {% if selected_crop %}
+        <a href="{{ url_for('history') }}" class="btn btn-secondary btn-sm" title="Clear Filter">
+          <i class="fa-solid fa-xmark"></i>
+        </a>
+      {% endif %}
+      <a href="{{ url_for('predict') }}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus"></i> New Prediction
+      </a>
+    </form>
+  </div>
+
+  <!-- Records Table -->
+  <div class="card">
+    {% if predictions %}
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Crop</th>
+              <th>Location</th>
+              <th>Area</th>
+              <th>Season / Soil</th>
+              <th>Weather (T / Rain / RH)</th>
+              <th>NDVI</th>
+              <th>Predicted Yield</th>
+              <th>Total Harvest</th>
+              <th>Timestamp</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pred in predictions %}
+              <tr>
+                <td>#{{ pred.id }}</td>
+                <td>
+                  <strong>{{ pred.crop_type }}</strong>
+                </td>
+                <td>{{ pred.district or '' }} {{ pred.location }}</td>
+                <td>{{ pred.land_area }} ha</td>
+                <td>
+                  <span class="badge badge-secondary" style="font-size: 0.75rem;">{{ pred.season }}</span><br>
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">{{ pred.soil_type }}</span>
+                </td>
+                <td style="font-size: 0.82rem;">
+                  {{ pred.avg_temp }}°C | {{ pred.rainfall }}mm | {{ pred.humidity }}%
+                </td>
+                <td>
+                  {% if pred.ndvi %}
+                    <span class="badge badge-success" style="font-size: 0.75rem;">{{ pred.ndvi }}</span>
+                  {% else %}
+                    <span class="badge badge-secondary" style="font-size: 0.75rem;">N/A</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <strong style="color: var(--primary-dark); font-size: 1.05rem;">{{ pred.predicted_yield }}</strong>
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">t/ha</span>
+                </td>
+                <td>
+                  <strong>{{ pred.estimated_total_production }}</strong>
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">t</span>
+                </td>
+                <td style="font-size: 0.82rem; color: var(--text-muted);">
+                  {{ pred.created_at.strftime("%Y-%m-%d %H:%M") }}
+                </td>
+                <td>
+                  <form method="POST" action="{{ url_for('delete_prediction', pred_id=pred.id) }}" onsubmit="return confirm('Are you sure you want to permanently delete prediction #{{ pred.id }}?');">
+                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;" title="Delete Record">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 4rem 1.5rem; color: var(--text-muted);">
+        <i class="fa-solid fa-folder-open" style="font-size: 3.5rem; opacity: 0.25; margin-bottom: 1rem;"></i>
+        <h3>No prediction records matched</h3>
+        <p>There are no saved historical predictions matching your current query.</p>
+        <div style="margin-top: 1.5rem;">
+          <a href="{{ url_for('predict') }}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Run First Prediction
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

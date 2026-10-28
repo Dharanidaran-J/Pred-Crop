@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Satellite Crop Health Dashboard – AgriPredict AI{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Header & Location Search -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="badge {% if satellite.is_live %}badge-success{% else %}badge-warning{% endif %}">
+        <i class="fa-solid fa-satellite"></i> {{ satellite.data_source }}
+      </span>
+      <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">
+        Copernicus Sentinel-2 Crop Health
+      </h1>
+      <p style="color: var(--text-muted); margin: 0;">
+        Normalized Difference Vegetation Index (NDVI) telemetry, canopy density, and spectral phenology analysis.
+      </p>
+    </div>
+
+    <!-- Search Location Form -->
+    <form method="GET" action="{{ url_for('satellite') }}" style="display: flex; gap: 0.5rem; align-items: center;">
+      <input type="text" name="location" class="form-control" placeholder="Search region or district..." value="{{ current_location }}" style="width: 220px;" required>
+      <button type="submit" class="btn btn-primary">
+        <i class="fa-solid fa-magnifying-glass"></i> Inspect Region
+      </button>
+    </form>
+  </div>
+
+  <!-- Telemetry Configuration Banner -->
+  {% if satellite.is_demo %}
+    <div class="alert alert-warning" style="margin-bottom: 2rem;">
+      <div>
+        <strong><i class="fa-solid fa-satellite-dish"></i> Demonstration Satellite Telemetry:</strong>
+        {{ satellite.api_config_note }}
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-success" style="margin-bottom: 2rem;">
+      <div>
+        <strong><i class="fa-solid fa-circle-check"></i> Live Earth Observation Stream:</strong>
+        Connected to Sentinel-2 Multi-Spectral telemetry. Target Coordinates: {{ satellite.lat }}°N, {{ satellite.lon }}°E.
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Primary Satellite Metrics -->
+  <div class="stat-grid" style="margin-bottom: 2rem;">
+    <!-- NDVI Value -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #dcfce7; color: #166534;">
+        <i class="fa-solid fa-leaf"></i>
+      </div>
+      <div>
+        <div class="stat-val" style="color: {{ satellite.status_color }};">{{ satellite.ndvi }}</div>
+        <div class="stat-label">Sentinel-2 NDVI Index</div>
+      </div>
+    </div>
+
+    <!-- Vigour Classification -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;">
+        <i class="fa-solid fa-seedling"></i>
+      </div>
+      <div>
+        <div class="stat-val" style="font-size: 1.15rem; line-height: 1.3;">{{ satellite.ndvi_status }}</div>
+        <div class="stat-label">Crop Canopy Status</div>
+      </div>
+    </div>
+
+    <!-- Acquisition Timestamp -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #f3e8ff; color: #7e22ce;">
+        <i class="fa-solid fa-calendar-check"></i>
+      </div>
+      <div>
+        <div class="stat-val" style="font-size: 1.15rem; line-height: 1.3;">{{ satellite.acquisition_date }}</div>
+        <div class="stat-label">Satellite Revisit Timestamp</div>
+      </div>
+    </div>
+
+    <!-- Mission & Resolution -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fef3c7; color: #b45309;">
+        <i class="fa-solid fa-globe"></i>
+      </div>
+      <div>
+        <div class="stat-val" style="font-size: 1.15rem; line-height: 1.3;">10m GSD</div>
+        <div class="stat-label">{{ satellite.satellite }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Satellite Map & Phenology Trend -->
+  <div class="grid-2" style="margin-bottom: 2rem;">
+    
+    <!-- Left: Interactive Leaflet Map with Satellite Tile Imagery -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-earth-americas" style="color: var(--secondary);"></i> Satellite Earth Observation Map</h3>
+        <span class="badge badge-primary">Esri World Imagery</span>
+      </div>
+      <div id="satelliteMap" style="height: 320px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); z-index: 1;"></div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; display: flex; justify-content: space-between;">
+        <span>Coordinates: {{ satellite.lat }}°N, {{ satellite.lon }}°E</span>
+        <span>Tile Layer: Esri High-Resolution Orthophoto</span>
+      </div>
+    </div>
+
+    <!-- Right: 6-Month Phenology Curve -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-chart-area" style="color: var(--primary);"></i> Seasonal Phenology & Biomass Curve</h3>
+        <span class="badge badge-secondary">6-Month Cycle</span>
+      </div>
+      <div style="position: relative; height: 320px;">
+        <canvas id="ndviTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- NDVI Educational Primer & Spectral Specifications -->
+  <div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> How Satellite NDVI Works in Precision Agriculture</h3>
+      <span class="badge badge-secondary">Remote Sensing Science</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; line-height: 1.6; font-size: 0.92rem;">
+      <div>
+        <h4 style="font-size: 1rem; color: var(--dark); margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-calculator" style="color: var(--primary);"></i> Mathematical Formulation
+        </h4>
+        <p style="color: var(--text-muted);">
+          The Normalized Difference Vegetation Index (NDVI) is mathematically defined as:
+        </p>
+        <div style="background: #f8fafc; border: 1px solid var(--border-color); padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-family: monospace; font-weight: 700; color: #166534; margin: 0.5rem 0;">
+          NDVI = (NIR - RED) / (NIR + RED)
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">
+          Healthy chlorophyll in photosynthetic active leaf tissue absorbs visible Red light (Band 4: 665nm) while the mesophyll cellular structure strongly reflects Near-Infrared radiation (Band 8: 842nm).
+        </p>
+      </div>
+
+      <div>
+        <h4 style="font-size: 1rem; color: var(--dark); margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-bars-staggered" style="color: var(--secondary);"></i> Agricultural Index Scale
+        </h4>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.85rem;">
+          <li><strong style="color: #16a34a;">0.70 – 1.00:</strong> Peak canopy, maximum leaf area index (LAI), high yield potential.</li>
+          <li><strong style="color: #22c55e;">0.50 – 0.69:</strong> Healthy vegetative growth, active tillering.</li>
+          <li><strong style="color: #eab308;">0.30 – 0.49:</strong> Moderate greenness, early emergence or soil moisture deficit.</li>
+          <li><strong style="color: #f97316;">0.15 – 0.29:</strong> Sparse germination, harvest stubble, or dry fallow.</li>
+          <li><strong style="color: #ef4444;">< 0.15:</strong> Water bodies, paved infrastructure, or bare rock/soil.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="font-size: 1rem; color: var(--dark); margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-satellite-dish" style="color: #9333ea;"></i> Sensor Telemetry Metadata
+        </h4>
+        <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+          <tr>
+            <td style="color: var(--text-muted); padding: 0.25rem 0;">Mission:</td>
+            <td><strong>Sentinel-2 Multi-Spectral</strong></td>
+          </tr>
+          <tr>
+            <td style="color: var(--text-muted); padding: 0.25rem 0;">Atmospheric Level:</td>
+            <td><strong>Level-2A Bottom-Of-Atmosphere</strong></td>
+          </tr>
+          <tr>
+            <td style="color: var(--text-muted); padding: 0.25rem 0;">Cloud Cover:</td>
+            <td><strong>{{ satellite.cloud_coverage }}</strong></td>
+          </tr>
+          <tr>
+            <td style="color: var(--text-muted); padding: 0.25rem 0;">Spatial GSD:</td>
+            <td><strong>10 Meters</strong></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // 1. Leaflet Interactive Satellite Map
+  const lat = {{ satellite.lat }};
+  const lon = {{ satellite.lon }};
+  const map = L.map('satelliteMap').setView([lat, lon], 12);
+
+  // High-resolution Esri World Imagery Satellite Tile Layer
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    maxZoom: 18
+  }).addTo(map);
+
+  // Add marker for analyzed parcel
+  const marker = L.marker([lat, lon]).addTo(map);
+  marker.bindPopup(`<strong>{{ current_location }} Farmland Zone</strong><br>NDVI: {{ satellite.ndvi }} ({{ satellite.ndvi_status }})`).openPopup();
+
+  // Add circle representing the Sentinel-2 10m grid observation footprint
+  L.circle([lat, lon], {
+    color: '{{ satellite.status_color }}',
+    fillColor: '{{ satellite.status_color }}',
+    fillOpacity: 0.35,
+    radius: 1200
+  }).addTo(map);
+
+  // 2. Phenology Curve Trend Chart
+  const trendData = {{ satellite.trends | tojson }};
+  const months = trendData.map(d => `${d.month} (${d.stage})`);
+  const ndvis = trendData.map(d => d.ndvi);
+
+  const ctxNdvi = document.getElementById('ndviTrendChart').getContext('2d');
+  new Chart(ctxNdvi, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Sentinel-2 NDVI Progression',
+        data: ndvis,
+        borderColor: '#16a34a',
+        backgroundColor: 'rgba(22, 163, 74, 0.15)',
+        fill: true,
+        pointBackgroundColor: '#16a34a',
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        tension: 0.35,
+        borderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: 0.0,
+          max: 1.0,
+          title: { display: true, text: 'NDVI Index Value' }
+        },
+        x: {
+          ticks: { font: { size: 10 } }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

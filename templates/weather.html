@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Agro-Weather Dashboard – AgriPredict AI{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Header & Location Search -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="badge {% if weather.is_live %}badge-success{% else %}badge-warning{% endif %}">
+        <i class="fa-solid {% if weather.is_live %}fa-satellite-dish{% else %}fa-flask{% endif %}"></i>
+        {{ weather.data_source }}
+      </span>
+      <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">
+        Agro-Meteorological Dashboard
+      </h1>
+      <p style="color: var(--text-muted); margin: 0;">
+        Real-time atmospheric telemetry and forecast trends for precision irrigation and cultivation decisions.
+      </p>
+    </div>
+
+    <!-- Search Location Form -->
+    <form method="GET" action="{{ url_for('weather') }}" style="display: flex; gap: 0.5rem; align-items: center;">
+      <input type="text" name="location" class="form-control" placeholder="Search city or district..." value="{{ current_location }}" style="width: 220px;" required>
+      <button type="submit" class="btn btn-primary">
+        <i class="fa-solid fa-magnifying-glass"></i> Search
+      </button>
+    </form>
+  </div>
+
+  <!-- API Mode Notice / Banner -->
+  {% if weather.is_demo %}
+    <div class="alert alert-warning" style="margin-bottom: 2rem;">
+      <div>
+        <strong><i class="fa-solid fa-triangle-exclamation"></i> Simulation Mode Active:</strong>
+        {{ weather.api_status_note }}
+        <span style="font-size: 0.85rem; display: block; margin-top: 0.25rem; opacity: 0.9;">
+          To connect real-time global live feeds, supply an <code>OPENWEATHER_API_KEY</code> in your <code>.env</code> file.
+        </span>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-success" style="margin-bottom: 2rem;">
+      <div>
+        <strong><i class="fa-solid fa-circle-check"></i> Live Telemetry Connected:</strong>
+        Streaming live data directly from OpenWeatherMap API for {{ weather.city }}, {{ weather.country }}.
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Current Weather Highlights Cards -->
+  <div class="stat-grid" style="margin-bottom: 2rem;">
+    <!-- Temperature -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fee2e2; color: #dc2626;">
+        <i class="fa-solid fa-temperature-half"></i>
+      </div>
+      <div>
+        <div class="stat-val">{{ weather.temp }} °C</div>
+        <div class="stat-label">Ambient Temperature (Feels {{ weather.feels_like }}°C)</div>
+      </div>
+    </div>
+
+    <!-- Rainfall -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;">
+        <i class="fa-solid fa-cloud-showers-heavy"></i>
+      </div>
+      <div>
+        <div class="stat-val">{{ weather.rainfall }} mm</div>
+        <div class="stat-label">Precipitation Volume</div>
+      </div>
+    </div>
+
+    <!-- Humidity -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #dcfce7; color: #166534;">
+        <i class="fa-solid fa-droplet"></i>
+      </div>
+      <div>
+        <div class="stat-val">{{ weather.humidity }} %</div>
+        <div class="stat-label">Relative Atmospheric Humidity</div>
+      </div>
+    </div>
+
+    <!-- Wind & Condition -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fef3c7; color: #b45309;">
+        <i class="fa-solid fa-wind"></i>
+      </div>
+      <div>
+        <div class="stat-val">{{ weather.wind_speed }} m/s</div>
+        <div class="stat-label">{{ weather.condition }} ({{ weather.description }})</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diurnal Forecast Chart & Agricultural Advisory -->
+  <div class="grid-2" style="margin-bottom: 2rem;">
+    <!-- Diurnal 24-Hour Forecast Chart -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> 24-Hour Diurnal Forecast</h3>
+        <span class="badge badge-secondary">{{ weather.city }} Cycle</span>
+      </div>
+      <div style="position: relative; height: 280px;">
+        <canvas id="forecastChart"></canvas>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; text-align: center;">
+        Diurnal temperature progression and precipitation events across 3-hour slices.
+      </p>
+    </div>
+
+    <!-- Agricultural Advisory Panel -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-clipboard-check" style="color: var(--primary);"></i> Precision Farming Advisory</h3>
+        <span class="badge badge-success">Automated Guidance</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div style="padding: 1rem; background: #f0fdf4; border-radius: var(--radius-sm); border-left: 4px solid var(--primary);">
+          <h4 style="font-size: 1rem; color: var(--primary-dark); margin-bottom: 0.3rem;">
+            <i class="fa-solid fa-faucet-drip"></i> Irrigation Advisory
+          </h4>
+          <p style="font-size: 0.88rem; color: #166534; margin: 0;">
+            {% if weather.rainfall > 10 %}
+              Substantial precipitation detected ({{ weather.rainfall }} mm). Natural soil recharge is sufficient; defer scheduled drip or canal irrigation.
+            {% elif weather.temp > 30 and weather.humidity < 50 %}
+              High evapotranspiration rate. Supplemental irrigation recommended in early morning or evening to preserve soil moisture.
+            {% else %}
+              Normal moisture equilibrium. Maintain standard crop watering intervals according to growth stage.
+            {% endif %}
+          </p>
+        </div>
+
+        <div style="padding: 1rem; background: #fefce8; border-radius: var(--radius-sm); border-left: 4px solid #eab308;">
+          <h4 style="font-size: 1rem; color: #854d0e; margin-bottom: 0.3rem;">
+            <i class="fa-solid fa-bug"></i> Pest & Fungal Risk Factor
+          </h4>
+          <p style="font-size: 0.88rem; color: #713f12; margin: 0;">
+            {% if weather.humidity > 75 and weather.temp > 24 %}
+              High relative humidity ({{ weather.humidity }}%) paired with warm temperatures elevates risk for blast and fungal foliar blights. Monitor field canopies.
+            {% else %}
+              Fungal infection index is low to moderate. Continue standard integrated pest management (IPM) monitoring.
+            {% endif %}
+          </p>
+        </div>
+
+        <div style="padding: 1rem; background: #eff6ff; border-radius: var(--radius-sm); border-left: 4px solid var(--secondary);">
+          <h4 style="font-size: 1rem; color: #1e40af; margin-bottom: 0.3rem;">
+            <i class="fa-solid fa-spray-can"></i> Spraying & Field Operations
+          </h4>
+          <p style="font-size: 0.88rem; color: #1e3a8a; margin: 0;">
+            {% if weather.wind_speed > 5.5 %}
+              Wind velocity exceeds 5.5 m/s. Postpone chemical foliar spraying to prevent drift losses and uneven distribution.
+            {% else %}
+              Wind speed is calm ({{ weather.wind_speed }} m/s). Optimal window for bio-fertilizer foliar spray and weeding.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const forecastData = {{ weather.forecast | tojson }};
+  const times = forecastData.map(d => d.time);
+  const temps = forecastData.map(d => d.temp);
+  const rains = forecastData.map(d => d.rainfall);
+
+  const ctxForecast = document.getElementById('forecastChart').getContext('2d');
+  new Chart(ctxForecast, {
+    type: 'line',
+    data: {
+      labels: times,
+      datasets: [
+        {
+          label: 'Temperature (°C)',
+          data: temps,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          fill: true,
+          tension: 0.3,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Precipitation (mm)',
+          data: rains,
+          borderColor: '#0284c7',
+          backgroundColor: 'rgba(2, 132, 199, 0.4)',
+          type: 'bar',
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          title: { display: true, text: 'Temperature (°C)' }
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          title: { display: true, text: 'Rainfall (mm)' },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

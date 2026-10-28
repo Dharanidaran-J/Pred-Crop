@@ -1,0 +1,26 @@
+{
+    "model_type": "RandomForestRegressor",
+    "n_estimators": 120,
+    "train_samples": 2600,
+    "test_samples": 650,
+    "test_mae": 0.8539,
+    "test_rmse": 1.9941,
+    "test_r2": 0.9959,
+    "train_r2": 0.9994,
+    "cv_r2_mean": 0.9969,
+    "cv_r2_std": 0.0004,
+    "categorical_features": [
+        "crop_type",
+        "state",
+        "season",
+        "soil_type"
+    ],
+    "numerical_features": [
+        "temperature",
+        "rainfall",
+        "humidity",
+        "soil_moisture",
+        "ndvi"
+    ],
+    "target": "yield"
+}

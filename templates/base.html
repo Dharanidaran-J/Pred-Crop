@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AgriPredict AI – Crop Yield Prediction Using Weather & Satellite Data{% endblock %}</title>
+  <meta name="description" content="Intelligent agricultural web platform predicting crop yield using Random Forest ML, live weather telemetry, and Copernicus Sentinel-2 satellite NDVI.">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Leaflet Map CSS/JS (For Satellite Visualization) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Application CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="{{ url_for('index') }}" class="brand-logo">
+        <div class="brand-icon">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+        <span>AgriPredict<span style="color: var(--primary);">AI</span></span>
+      </a>
+
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"><i class="fa-solid fa-house"></i> Home</a></li>
+          <li><a href="{{ url_for('predict') }}" class="nav-link {% if request.endpoint == 'predict' %}active{% endif %}"><i class="fa-solid fa-calculator"></i> Predict Yield</a></li>
+          <li><a href="{{ url_for('weather') }}" class="nav-link {% if request.endpoint == 'weather' %}active{% endif %}"><i class="fa-solid fa-cloud-sun"></i> Weather</a></li>
+          <li><a href="{{ url_for('satellite') }}" class="nav-link {% if request.endpoint == 'satellite' %}active{% endif %}"><i class="fa-solid fa-satellite"></i> Satellite Health</a></li>
+          
+          {% if session.get('user_id') %}
+            <li><a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %}"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Database Status Indicator -->
+        <span class="badge {% if 'MySQL' in active_db_type %}badge-success{% else %}badge-primary{% endif %}" title="Active Database Engine">
+          <i class="fa-solid fa-database"></i> {{ active_db_type }}
+        </span>
+
+        {% if session.get('user_id') %}
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">
+              <i class="fa-solid fa-circle-user" style="color: var(--primary);"></i> {{ session.get('user_name', 'Farmer') }}
+            </span>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" title="Log Out">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+          </div>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">Log In</a>
+          <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Sign Up</a>
+        {% endif %}
+
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  <div class="flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <span><i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i> {{ message }}</span>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; color: inherit; font-size: 1.1rem;">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Body Content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <div class="brand-logo" style="color: white; margin-bottom: 0.8rem;">
+          <div class="brand-icon">
+            <i class="fa-solid fa-seedling"></i>
+          </div>
+          <span>AgriPredict<span style="color: var(--primary);">AI</span></span>
+        </div>
+        <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem;">
+          Predict Your Harvest. Grow a Better Future. An intelligent AI/ML and DBMS agricultural platform combining meteorological parameters, soil chemistry, and Sentinel-2 satellite vegetation spectral data.
+        </p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <span class="badge badge-secondary">Python Flask</span>
+          <span class="badge badge-secondary">Random Forest</span>
+          <span class="badge badge-secondary">MySQL DBMS</span>
+          <span class="badge badge-secondary">Sentinel-2 NDVI</span>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul class="footer-links">
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('predict') }}">Crop Yield Prediction</a></li>
+          <li><a href="{{ url_for('weather') }}">Weather Dashboard</a></li>
+          <li><a href="{{ url_for('satellite') }}">Satellite Crop Health</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Supported Crops</h4>
+        <ul class="footer-links">
+          <li><a href="{{ url_for('predict') }}?crop=Rice">Rice (Paddy)</a></li>
+          <li><a href="{{ url_for('predict') }}?crop=Wheat">Wheat (Kanak)</a></li>
+          <li><a href="{{ url_for('predict') }}?crop=Maize">Maize (Corn)</a></li>
+          <li><a href="{{ url_for('predict') }}?crop=Cotton">Cotton (Kapas)</a></li>
+          <li><a href="{{ url_for('predict') }}?crop=Sugarcane">Sugarcane (Ganna)</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Data & Models</h4>
+        <ul class="footer-links">
+          <li><span style="color: #cbd5e1;">Directorate of Economics & Statistics</span></li>
+          <li><span style="color: #cbd5e1;">OpenWeatherMap API</span></li>
+          <li><span style="color: #cbd5e1;">Copernicus Sentinel-2 MSI</span></li>
+          <li><span style="color: #cbd5e1;">Scikit-learn Regressor</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>
+        &copy; 2026 AgriPredict AI. College AI/ML & DBMS Project. Open-Source under MIT License.
+      </div>
+      <div>
+        <span style="color: #22c55e;"><i class="fa-solid fa-shield-halved"></i> Scientific Agronomic Estimates</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

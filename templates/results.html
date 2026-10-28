@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Results – AgriPredict AI{% endblock %}
+
+{% block content %}
+<div class="container">
+  
+  <!-- Breadcrumb & Top Bar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="badge badge-success"><i class="fa-solid fa-check-circle"></i> Calculation Complete</span>
+      <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">
+        Crop Yield & Production Report
+      </h1>
+      <p style="color: var(--text-muted); margin: 0;">
+        Synthesized for <strong>{{ result.crop_type }}</strong> in <strong>{{ result.district }}, {{ result.state }}</strong>
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('predict') }}" class="btn btn-outline">
+        <i class="fa-solid fa-plus"></i> Predict Another Crop
+      </a>
+      {% if session.get('user_id') %}
+        <a href="{{ url_for('history') }}" class="btn btn-primary">
+          <i class="fa-solid fa-clock-rotate-left"></i> View History
+        </a>
+      {% else %}
+        <a href="{{ url_for('register') }}" class="btn btn-primary">
+          <i class="fa-solid fa-floppy-disk"></i> Sign Up to Save Predictions
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Primary Results Cards -->
+  <div class="stat-grid" style="margin-bottom: 2rem;">
+    <!-- Card 1: Predicted Yield -->
+    <div class="card" style="border-top: 4px solid var(--primary); background: #ffffff;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <span class="badge badge-success">Unit Yield</span>
+        <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+      </div>
+      <div style="font-size: 2.6rem; font-weight: 800; color: var(--dark); line-height: 1;">
+        {{ result.predicted_yield }}
+      </div>
+      <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-top: 0.35rem;">
+        Tonnes per Hectare
+      </div>
+      <div style="margin-top: 0.75rem; font-size: 0.82rem; color: {% if result.yield_delta_pct >= 0 %}#16a34a{% else %}#ef4444{% endif %}; font-weight: 600;">
+        <i class="fa-solid {% if result.yield_delta_pct >= 0 %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
+        {{ result.yield_delta_pct }}% vs National Benchmark ({{ result.benchmark_yield }} t/ha)
+      </div>
+    </div>
+
+    <!-- Card 2: Total Production -->
+    <div class="card" style="border-top: 4px solid var(--secondary); background: #ffffff;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <span class="badge badge-primary">Total Harvest</span>
+        <div style="width: 38px; height: 38px; border-radius: 10px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-truck-ramp-box"></i>
+        </div>
+      </div>
+      <div style="font-size: 2.6rem; font-weight: 800; color: var(--dark); line-height: 1;">
+        {{ result.estimated_total_production }}
+      </div>
+      <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-top: 0.35rem;">
+        Estimated Metric Tonnes
+      </div>
+      <div style="margin-top: 0.75rem; font-size: 0.82rem; color: var(--text-muted);">
+        Across {{ result.land_area }} Hectares cultivated area
+      </div>
+    </div>
+
+    <!-- Card 3: Satellite Vigour -->
+    <div class="card" style="border-top: 4px solid #f59e0b; background: #ffffff;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <span class="badge badge-warning">Sentinel-2 NDVI</span>
+        <div style="width: 38px; height: 38px; border-radius: 10px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-satellite"></i>
+        </div>
+      </div>
+      <div style="font-size: 2.6rem; font-weight: 800; color: var(--dark); line-height: 1;">
+        {{ result.ndvi }}
+      </div>
+      <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-muted); margin-top: 0.35rem;">
+        Normalized Difference Index
+      </div>
+      <div style="margin-top: 0.75rem; font-size: 0.82rem; font-weight: 600; color: #166534;">
+        <i class="fa-solid fa-circle-check"></i> {{ result.ndvi_status }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Visualizations & Factors -->
+  <div class="grid-2" style="margin-bottom: 2rem;">
+    <!-- Chart: Yield Benchmark Comparison -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-chart-column" style="color: var(--primary);"></i> Yield Benchmark Comparison</h3>
+        <span class="badge badge-secondary">Tonnes / Hectare</span>
+      </div>
+      <div style="position: relative; height: 260px;">
+        <canvas id="yieldChart"></canvas>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; text-align: center;">
+        Compares predicted field potential against historical agronomic benchmarks for {{ result.crop_type }}.
+      </p>
+    </div>
+
+    <!-- Chart: Environmental Influence Radar -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-chart-pie" style="color: var(--secondary);"></i> Environmental Index Matrix</h3>
+        <span class="badge badge-secondary">Normalized Scaling</span>
+      </div>
+      <div style="position: relative; height: 260px;">
+        <canvas id="radarChart"></canvas>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; text-align: center;">
+        Multi-spectral and meteorological balance relative to optimal growth envelopes.
+      </p>
+    </div>
+  </div>
+
+  <!-- Input Summary & Agronomic Audit Table -->
+  <div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Agro-Ecological Input Summary</h3>
+      {% if prediction_id %}
+        <span class="badge badge-success"><i class="fa-solid fa-database"></i> Saved to MySQL (ID: #{{ prediction_id }})</span>
+      {% else %}
+        <span class="badge badge-secondary"><i class="fa-solid fa-user-lock"></i> Guest Session (Unsaved)</span>
+      {% endif %}
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <tbody>
+          <tr>
+            <td><strong>Crop Variety:</strong> {{ result.crop_type }}</td>
+            <td><strong>Geographic State:</strong> {{ result.state }}</td>
+            <td><strong>District:</strong> {{ result.district }}</td>
+            <td><strong>Cropping Season:</strong> {{ result.season }}</td>
+          </tr>
+          <tr>
+            <td><strong>Soil Type:</strong> {{ result.soil_type }}</td>
+            <td><strong>Cultivated Area:</strong> {{ result.land_area }} Hectares</td>
+            <td><strong>Ambient Temp:</strong> {{ result.temperature }} °C</td>
+            <td><strong>Precipitation:</strong> {{ result.rainfall }} mm</td>
+          </tr>
+          <tr>
+            <td><strong>Air Humidity:</strong> {{ result.humidity }} %</td>
+            <td><strong>Soil Moisture:</strong> {{ result.soil_moisture }} %</td>
+            <td><strong>Satellite NDVI:</strong> {{ result.ndvi }}</td>
+            <td><strong>Machine Learning Pipeline:</strong> Random Forest (120 Trees)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Scientific Disclaimer Note -->
+  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 0.75rem; align-items: flex-start;">
+    <i class="fa-solid fa-circle-info" style="color: var(--secondary); font-size: 1.2rem; margin-top: 0.1rem;"></i>
+    <div>
+      <strong>Scientific Notice & Farm Advisory:</strong> Predicted harvest figures represent empirical mathematical projections based on Scikit-learn Random Forest regression using meteorological variables and Sentinel-2 vegetation indices. Final farm-gate yield may be affected by extreme unmodeled events, localized pests, fertilizer timings, and post-harvest handling.
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // 1. Yield Comparison Bar Chart
+  const ctxYield = document.getElementById('yieldChart').getContext('2d');
+  new Chart(ctxYield, {
+    type: 'bar',
+    data: {
+      labels: ['Your Predicted Yield', 'Regional Benchmark', 'Ideal Max Potential'],
+      datasets: [{
+        label: 'Yield (t/ha)',
+        data: [{{ result.predicted_yield }}, {{ result.benchmark_yield }}, {{ (result.benchmark_yield * 1.35) | round(2) }}],
+        backgroundColor: ['#16a34a', '#94a3b8', '#0284c7'],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Tonnes / Hectare' } }
+      }
+    }
+  });
+
+  // 2. Environmental Radar Chart
+  const ctxRadar = document.getElementById('radarChart').getContext('2d');
+  // Normalize input values to 0-100 scale for visual harmony
+  const tempNorm = Math.min(100, Math.max(10, ({{ result.temperature }} / 40) * 100));
+  const rainNorm = Math.min(100, Math.max(10, ({{ result.rainfall }} / 1500) * 100));
+  const humNorm = {{ result.humidity }};
+  const moistNorm = {{ result.soil_moisture }} * 1.8;
+  const ndviNorm = {{ result.ndvi }} * 100;
+
+  new Chart(ctxRadar, {
+    type: 'radar',
+    data: {
+      labels: ['Temperature', 'Rainfall', 'Humidity', 'Soil Moisture', 'Satellite NDVI'],
+      datasets: [{
+        label: 'Current Conditions',
+        data: [tempNorm, rainNorm, humNorm, moistNorm, ndviNorm],
+        backgroundColor: 'rgba(22, 163, 74, 0.25)',
+        borderColor: '#16a34a',
+        pointBackgroundColor: '#16a34a',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: { display: false }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}
