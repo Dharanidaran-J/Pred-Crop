@@ -6,7 +6,10 @@
 [![MySQL](https://img.shields.io/badge/Database-MySQL_8.0-blue.svg)](https://www.mysql.com/)
 [![Sentinel-2](https://img.shields.io/badge/Earth_Observation-Copernicus_Sentinel--2-darkgreen.svg)](https://sentinel.esa.int/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-brightgreen.svg)](https://username.github.io/agripredict-ai/)
+[![GitHub Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-brightgreen.svg)](https://dharanidaran-j.github.io/Pred-Crop/)
+
+> 🌾 **Live Interactive Website:** **[https://dharanidaran-j.github.io/Pred-Crop/](https://dharanidaran-j.github.io/Pred-Crop/)**  
+> *(Runs directly in your browser with trained Random Forest ML, Leaflet satellite maps, and real-time Chart.js graphs).*
 
 ---
 
@@ -248,7 +251,7 @@ The repository includes a ready-to-deploy static client-side web application in 
    - Source: `Deploy from a branch`
    - Branch: `main`
    - Folder: `/docs`
-4. Click **Save**. Your interactive live demo will be live at `https://<your-username>.github.io/agripredict-ai/`!
+4. Click **Save**. Your interactive live demo will be live at `https://dharanidaran-j.github.io/Pred-Crop/`!
 
 ---
 
